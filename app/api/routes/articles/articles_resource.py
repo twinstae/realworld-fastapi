@@ -1,11 +1,13 @@
 from typing import Dict, List
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, HTTPException
 from starlette import status
+from starlette.status import HTTP_400_BAD_REQUEST
 
 from app.models.domain.articles import Article
 from app.models.schemas.articles import ArticleInResponse, ArticleInCreate, ArticleInUpdate, ListOfArticlesInResponse, \
     ArticleForResponse
+from app.resources import strings
 from app.services.articles import get_slug_for_article
 
 fake_db: Dict[str, Article] = {}
@@ -43,9 +45,18 @@ async def list_articles() -> ListOfArticlesInResponse:
 async def retrieve_article_by_slug(
         slug: str
 ) -> ArticleInResponse:
+    check_article_for_slug(slug)
     return ArticleInResponse(
         article=fake_db[slug]
     )
+
+
+def check_article_for_slug(slug):
+    if slug not in fake_db:
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=strings.WRONG_SLUG_NO_ARTICLE
+        )
 
 
 @router.post(
@@ -58,6 +69,8 @@ async def create_new_article(
         article_create: ArticleInCreate = Body(..., embed=True, alias="article")
 ) -> ArticleInResponse:
     slug: str = get_slug_for_article(article_create.title)
+    check_article_for_slug(slug)
+
     fake_db[slug] = Article(
         slug=slug,
         title=article_create.title,
@@ -77,6 +90,8 @@ async def update_article_by_slug(
         article_update: ArticleInUpdate,
         slug: str
 ) -> ArticleInResponse:
+    check_article_for_slug(slug)
+
     article: Article = fake_db[slug]
     article.title = article_update.title or article.title
     article.description = article_update.description or article.description
@@ -96,4 +111,5 @@ async def update_article_by_slug(
 async def delete_by_slug(
         slug: str
 ) -> None:
+    check_article_for_slug(slug)
     del fake_db[slug]

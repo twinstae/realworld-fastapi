@@ -1,29 +1,16 @@
-from typing import Dict
-
 from fastapi import APIRouter, Body, HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
-from app.api.dependencies.authentication import EntityDoesNotExist
-from app.core.config import config
+from app.core.config import SECRET_KEY
 from app.models.domain.users import UserInDB
 from app.models.schemas.users import UserInResponse, UserInLogin, UserWithToken, UserInCreate
 from app.resources import strings
 from app.services import jwt
+from app.services.authentication import fake_user_DB, get_user_by_email, username_set, fake_user_DB_by_username
 
 router: APIRouter = APIRouter()
 
 PREFIX = "auth:"
-
-fake_user_DB: Dict[str, UserInDB] = {}
-fake_user_DB_by_username: Dict[str, UserInDB] = {}
-
-username_set = set()
-
-
-def get_user_by_email(email) -> UserInDB:
-    if email not in fake_user_DB:
-        raise EntityDoesNotExist
-    return fake_user_DB[email]
 
 
 @router.post(
@@ -47,7 +34,7 @@ async def login(
     if not user.check_password(user_login.password, ):
         raise wrong_login_error
 
-    token = jwt.create_access_token_for_user(user, str(config.SECRET_KEY))
+    token = jwt.create_access_token_for_user(user, str(SECRET_KEY))
 
     return UserInResponse(
         user=UserWithToken(
@@ -90,7 +77,7 @@ async def register(
     fake_user_DB[user_create.email] = user
     fake_user_DB_by_username[user_create.username] = user
 
-    token = jwt.create_access_token_for_user(user, str(config.SECRET_KEY))
+    token = jwt.create_access_token_for_user(user, str(SECRET_KEY))
 
     return UserInResponse(
         user=UserWithToken(
