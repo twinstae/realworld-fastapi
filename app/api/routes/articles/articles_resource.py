@@ -24,17 +24,22 @@ async def list_articles() -> ListOfArticlesInResponse:
     articles: List[Article] = list(fake_db.values())[-10:]
 
     return ListOfArticlesInResponse(
-        articles=[ArticleForResponse(
-            slug=a.slug,
-            title=a.title,
-            description=a.description,
-            body=a.body
-        ) for a in articles],
+        articles=[
+            ArticleForResponse(
+                slug=a.slug,
+                title=a.title,
+                description=a.description,
+                body=a.body
+            ) for a in articles],
         articles_count=len(articles)
     )
 
 
-@router.get("/{slug}", response_model=ArticleInResponse, name=prefix + "get-article")
+@router.get(
+    "/{slug}",
+    response_model=ArticleInResponse,
+    name=prefix + "get-article"
+)
 async def retrieve_article_by_slug(
         slug: str
 ) -> ArticleInResponse:

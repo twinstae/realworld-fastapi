@@ -3,6 +3,7 @@ from typing import Dict
 from fastapi import APIRouter, Body, HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
+from app.api.dependencies.authentication import EntityDoesNotExist
 from app.core.config import config
 from app.models.domain.users import UserInDB
 from app.models.schemas.users import UserInResponse, UserInLogin, UserWithToken, UserInCreate
@@ -13,14 +14,22 @@ router: APIRouter = APIRouter()
 
 PREFIX = "auth:"
 
-fake_db: Dict[str, UserInDB] = {}
+fake_user_DB: Dict[str, UserInDB] = {}
+fake_user_DB_by_username: Dict[str, UserInDB] = {}
+
 username_set = set()
+
+
+def get_user_by_email(email) -> UserInDB:
+    if email not in fake_user_DB:
+        raise EntityDoesNotExist
+    return fake_user_DB[email]
 
 
 @router.post(
     '/login',
     response_model=UserInResponse,
-    name=PREFIX+"login",
+    name=PREFIX + "login",
 )
 async def login(
         user_login: UserInLogin = Body(..., embed=True, alias="user")
@@ -30,10 +39,10 @@ async def login(
         detail=strings.INCORRECT_LOGIN_INPUT,
     )
     email: str = user_login.email
-    if email not in fake_db:
+    if email not in fake_user_DB:
         raise wrong_login_error
 
-    user = fake_db[email]
+    user = get_user_by_email(email=email)
 
     if not user.check_password(user_login.password, ):
         raise wrong_login_error
@@ -55,7 +64,7 @@ async def login(
     "",
     status_code=HTTP_201_CREATED,
     response_model=UserInResponse,
-    name=PREFIX+"register"
+    name=PREFIX + "register"
 )
 async def register(
         user_create: UserInCreate = Body(..., embed=True, alias="user")
@@ -66,7 +75,7 @@ async def register(
             detail=strings.USERNAME_TAKEN,
         )
 
-    if user_create.email in fake_db:
+    if user_create.email in fake_user_DB:
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,
             detail=strings.EMAIL_TAKEN,
@@ -78,7 +87,8 @@ async def register(
     )
     user.change_password(user_create.password)
 
-    fake_db[user_create.email] = user
+    fake_user_DB[user_create.email] = user
+    fake_user_DB_by_username[user_create.username] = user
 
     token = jwt.create_access_token_for_user(user, str(config.SECRET_KEY))
 
