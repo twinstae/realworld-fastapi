@@ -2,12 +2,10 @@ from fastapi import APIRouter, Depends, Body, HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
 from app.api.dependencies.authentication import get_current_user_authorizer
-from app.api.routes.authentication import fake_user_DB, fake_user_DB_by_username
-from app.core.config import config
+from app.api.routes.authentication import fake_user_DB, fake_user_DB_by_username, get_user_in_response
 from app.models.domain.users import User, UserInDB
-from app.models.schemas.users import UserInResponse, UserWithToken, UserInUpdate
+from app.models.schemas.users import UserInResponse, UserInUpdate
 from app.resources import strings
-from app.services import jwt
 from app.services.authentication import check_username_is_taken, check_email_is_taken
 
 router = APIRouter()
@@ -22,20 +20,7 @@ PREFIX = "Users:"
 async def retrieve_current_user(
         user: User = Depends(get_current_user_authorizer())
 ) -> UserInResponse:
-    token = jwt.create_access_token_for_user(user, str(config.SECRET_KEY))
-    return to_response(token=token, user=user)
-
-
-def to_response(token, user):
-    return UserInResponse(
-        user=UserWithToken(
-            username=user.username,
-            email=user.email,
-            bio=user.bio,
-            image=user.image,
-            token=token
-        )
-    )
+    return get_user_in_response(user)
 
 
 def update_user(current_user: User, user_update: UserInUpdate) -> User:
@@ -49,9 +34,9 @@ def update_user(current_user: User, user_update: UserInUpdate) -> User:
         hashed_password=user.hashed_password,
     )
     del fake_user_DB[user.email]
-    fake_user_DB[user_update.email] = new_user
+    fake_user_DB[new_user.email] = new_user
     del fake_user_DB_by_username[user.username]
-    fake_user_DB_by_username[user.username] = new_user
+    fake_user_DB_by_username[new_user.username] = new_user
     return new_user
 
 
@@ -80,6 +65,4 @@ async def update_current_user(
 
     user = update_user(current_user, user_update)
 
-    token = jwt.create_access_token_for_user(user, str(config.SECRET_KEY))
-
-    return to_response(user=user, token=token)
+    return get_user_in_response(user)

@@ -25,26 +25,15 @@ async def login(
         status_code=HTTP_400_BAD_REQUEST,
         detail=strings.INCORRECT_LOGIN_INPUT,
     )
-    email: str = user_login.email
-    if email not in fake_user_DB:
+    if user_login.email not in fake_user_DB:
         raise wrong_login_error
 
-    user = get_user_by_email(email=email)
+    user = get_user_by_email(email=user_login.email)
 
-    if not user.check_password(user_login.password, ):
+    if not user.check_password(user_login.password):
         raise wrong_login_error
 
-    token = jwt.create_access_token_for_user(user, str(SECRET_KEY))
-
-    return UserInResponse(
-        user=UserWithToken(
-            username=user.username,
-            email=user.email,
-            bio=user.bio,
-            image=user.image,
-            token=token
-        )
-    )
+    return get_user_in_response(user)
 
 
 @router.post(
@@ -77,14 +66,21 @@ async def register(
     fake_user_DB[user_create.email] = user
     fake_user_DB_by_username[user_create.username] = user
 
-    token = jwt.create_access_token_for_user(user, str(SECRET_KEY))
+    return get_user_in_response(user)
 
+
+def get_user_in_response(user) -> UserInResponse:
+    token = jwt.create_access_token_for_user(user, str(SECRET_KEY))
     return UserInResponse(
-        user=UserWithToken(
-            username=user.username,
-            email=user.email,
-            bio=user.bio,
-            image=user.image,
-            token=token
-        )
+        user=get_user_with_token(token, user)
+    )
+
+
+def get_user_with_token(token, user):
+    return UserWithToken(
+        username=user.username,
+        email=user.email,
+        bio=user.bio,
+        image=user.image,
+        token=token
     )
