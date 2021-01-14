@@ -44,16 +44,10 @@ def _get_authorization_header(
     try:
         token_prefix, token = api_key.split(" ")
     except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=strings.WRONG_TOKEN_PREFIX,
-        )
+        raise forbidden_exception(strings.WRONG_TOKEN_PREFIX)
 
     if token_prefix != JWT_TOKEN_PREFIX:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=strings.WRONG_TOKEN_PREFIX,
-        )
+        raise forbidden_exception(strings.WRONG_TOKEN_PREFIX)
 
     return token
 
@@ -78,17 +72,18 @@ async def _get_current_user(
     try:
         username = jwt.get_username_from_token(token, str(SECRET_KEY))
     except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=strings.MALFORMED_PAYLOAD,
-        )
+        raise forbidden_exception(strings.MALFORMED_PAYLOAD)
     try:
         return User()  # get_user_by_username(username=username)
     except EntityDoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=strings.MALFORMED_PAYLOAD,
-        )
+        raise forbidden_exception(strings.MALFORMED_PAYLOAD)
+
+
+def forbidden_exception(detail: str):
+    return HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=detail,
+    )
 
 
 async def _get_current_user_optional(
