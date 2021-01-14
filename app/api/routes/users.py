@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, Body, HTTPException
-from starlette.status import HTTP_400_BAD_REQUEST
+from fastapi import APIRouter, Depends, Body
 
 from app.api.dependencies.authentication import get_current_user_authorizer
 from app.api.routes.authentication import fake_user_DB, fake_user_DB_by_username, get_user_in_response
+from app.api.routes.profiles import bad_request_exception
 from app.models.domain.users import User, UserInDB
 from app.models.schemas.users import UserInResponse, UserInUpdate
 from app.resources import strings
@@ -51,17 +51,11 @@ async def update_current_user(
 ) -> UserInResponse:
     if user_update.username and user_update.username != current_user.username:
         if await check_username_is_taken(user_update.username):
-            raise HTTPException(
-                status_code=HTTP_400_BAD_REQUEST,
-                detail=strings.USERNAME_TAKEN,
-            )
+            raise bad_request_exception(strings.USERNAME_TAKEN)
 
     if user_update.email and user_update.email != current_user.email:
         if await check_email_is_taken(user_update.email):
-            raise HTTPException(
-                status_code=HTTP_400_BAD_REQUEST,
-                detail=strings.EMAIL_TAKEN,
-            )
+            raise bad_request_exception(strings.EMAIL_TAKEN)
 
     user = update_user(current_user, user_update)
 

@@ -1,9 +1,9 @@
 from typing import Dict, List
 
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body
 from starlette import status
-from starlette.status import HTTP_400_BAD_REQUEST
 
+from app.api.routes.profiles import bad_request_exception
 from app.models.domain.articles import Article
 from app.models.schemas.articles import ArticleInResponse, ArticleInCreate, ArticleInUpdate, ListOfArticlesInResponse, \
     ArticleForResponse
@@ -65,10 +65,7 @@ def get_article_in_response(article: Article) -> ArticleInResponse:
 
 def check_article_for_slug(slug) -> None:
     if slug not in fake_db:
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST,
-            detail=strings.WRONG_SLUG_NO_ARTICLE
-        )
+        raise bad_request_exception(strings.WRONG_SLUG_NO_ARTICLE)
 
 
 @router.post(

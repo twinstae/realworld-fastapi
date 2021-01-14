@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Body, HTTPException
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
+from fastapi import APIRouter, Body
+from starlette.status import HTTP_201_CREATED
 
+from app.api.routes.profiles import bad_request_exception
 from app.core.config import SECRET_KEY
 from app.models.domain.users import UserInDB
 from app.models.schemas.users import UserInResponse, UserInLogin, UserWithToken, UserInCreate
@@ -21,10 +22,7 @@ PREFIX = "auth:"
 async def login(
         user_login: UserInLogin = Body(..., embed=True, alias="user")
 ) -> UserInResponse:
-    wrong_login_error = HTTPException(
-        status_code=HTTP_400_BAD_REQUEST,
-        detail=strings.INCORRECT_LOGIN_INPUT,
-    )
+    wrong_login_error = bad_request_exception(strings.INCORRECT_LOGIN_INPUT)
     if user_login.email not in fake_user_DB:
         raise wrong_login_error
 
@@ -46,16 +44,10 @@ async def register(
         user_create: UserInCreate = Body(..., embed=True, alias="user")
 ) -> UserInResponse:
     if user_create.username in username_set:
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST,
-            detail=strings.USERNAME_TAKEN,
-        )
+        raise bad_request_exception(strings.USERNAME_TAKEN)
 
     if user_create.email in fake_user_DB:
-        raise HTTPException(
-            status_code=HTTP_400_BAD_REQUEST,
-            detail=strings.EMAIL_TAKEN,
-        )
+        raise bad_request_exception(strings.EMAIL_TAKEN)
 
     user: UserInDB = UserInDB(
         username=user_create.username,
