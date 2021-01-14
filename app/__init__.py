@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from app.api.routes.api import router as api_router
 
 API_PREFIX: str = "/api"

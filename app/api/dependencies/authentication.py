@@ -83,7 +83,7 @@ async def _get_current_user(
             detail=strings.MALFORMED_PAYLOAD,
         )
     try:
-        return User() # get_user_by_username(username=username)
+        return User()  # get_user_by_username(username=username)
     except EntityDoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

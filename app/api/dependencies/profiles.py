@@ -11,8 +11,8 @@ from app.services.authentication import get_user_by_username
 
 
 def get_profile_by_username(
-    username: str,
-    requested_user: Optional[UserInDB] = None
+        username: str,
+        requested_user: Optional[UserInDB] = None
 ):
     user = get_user_by_username(username=username)
     profile = Profile(
@@ -34,8 +34,8 @@ def get_profile_by_username(
 
 
 async def get_profile_by_username_from_path(
-    username: str = Path(..., min_length=1),
-    user: Optional[User] = Depends(get_current_user_authorizer(required=False)),
+        username: str = Path(..., min_length=1),
+        user: Optional[User] = Depends(get_current_user_authorizer(required=False)),
 ) -> Profile:
     try:
         return get_profile_by_username(

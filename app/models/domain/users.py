@@ -1,5 +1,7 @@
 from typing import Optional
+
 from pydantic.main import BaseModel
+
 from app.models.common import DateTimeModelMixin, IDModelMixin
 from app.services import security
 

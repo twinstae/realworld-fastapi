@@ -14,25 +14,22 @@ fake_db: Dict[str, Article] = {}
 
 router: APIRouter = APIRouter()
 
-prefix: str = "articles:"
+PREFIX: str = "articles:"
 
 
 @router.get(
     "",
     response_model=ListOfArticlesInResponse,
-    name=prefix + "list-articles"
+    name=PREFIX + "list-articles"
 )
 async def list_articles() -> ListOfArticlesInResponse:
     articles: List[Article] = list(fake_db.values())[-10:]
 
     return ListOfArticlesInResponse(
         articles=[
-            ArticleForResponse(
-                slug=a.slug,
-                title=a.title,
-                description=a.description,
-                body=a.body
-            ) for a in articles],
+            get_article_for_response(a)
+            for a in articles
+        ],
         articles_count=len(articles)
     )
 
@@ -40,18 +37,33 @@ async def list_articles() -> ListOfArticlesInResponse:
 @router.get(
     "/{slug}",
     response_model=ArticleInResponse,
-    name=prefix + "get-article"
+    name=PREFIX + "get-article"
 )
 async def retrieve_article_by_slug(
         slug: str
 ) -> ArticleInResponse:
     check_article_for_slug(slug)
-    return ArticleInResponse(
-        article=fake_db[slug]
+    return get_article_in_response(fake_db[slug])
+
+
+def get_article_for_response(article: Article) -> ArticleForResponse:
+    return ArticleForResponse(
+        title=article.title,
+        description=article.description,
+        body=article.body,
+        slug=article.slug,
+        created_at=article.created_at,
+        updated_at=article.updated_at
     )
 
 
-def check_article_for_slug(slug):
+def get_article_in_response(article: Article) -> ArticleInResponse:
+    return ArticleInResponse(
+        article=get_article_for_response(article=article)
+    )
+
+
+def check_article_for_slug(slug) -> None:
     if slug not in fake_db:
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,
@@ -63,7 +75,7 @@ def check_article_for_slug(slug):
     "",
     status_code=status.HTTP_201_CREATED,
     response_model=ArticleInResponse,
-    name=prefix + "create-article"
+    name=PREFIX + "create-article"
 )
 async def create_new_article(
         article_create: ArticleInCreate = Body(..., embed=True, alias="article")
@@ -78,13 +90,13 @@ async def create_new_article(
         body=article_create.body
     )
 
-    return ArticleInResponse(article=fake_db[slug])
+    return get_article_in_response(fake_db[slug])
 
 
 @router.put(
     "/{slug}",
     response_model=ArticleInResponse,
-    name=prefix + "update-article",
+    name=PREFIX + "update-article",
 )
 async def update_article_by_slug(
         article_update: ArticleInUpdate,
@@ -98,15 +110,13 @@ async def update_article_by_slug(
     article.body = article_update.body or article.body
     fake_db[slug] = article
 
-    return ArticleInResponse(
-        article=fake_db[slug]
-    )
+    return get_article_in_response(fake_db[slug])
 
 
 @router.delete(
     "/{slug}",
     status_code=status.HTTP_204_NO_CONTENT,
-    name=prefix + "delete-article"
+    name=PREFIX + "delete-article"
 )
 async def delete_by_slug(
         slug: str

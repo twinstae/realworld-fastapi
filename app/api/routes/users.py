@@ -41,7 +41,7 @@ def to_response(token, user):
 def update_user(current_user: User, user_update: UserInUpdate) -> User:
     user = fake_user_DB[current_user.email]
     new_user = UserInDB(
-        username= user_update.username or user.username,
+        username=user_update.username or user.username,
         email=user_update.email or user.email,
         bio=user_update.bio or user.bio,
         image=user_update.image or user.image,
@@ -61,8 +61,8 @@ def update_user(current_user: User, user_update: UserInUpdate) -> User:
     name=PREFIX + "update-current-user"
 )
 async def update_current_user(
-    user_update: UserInUpdate = Body(..., embed=True, alias="user"),
-    current_user: User = Depends(get_current_user_authorizer()),
+        user_update: UserInUpdate = Body(..., embed=True, alias="user"),
+        current_user: User = Depends(get_current_user_authorizer()),
 ) -> UserInResponse:
     if user_update.username and user_update.username != current_user.username:
         if await check_username_is_taken(user_update.username):

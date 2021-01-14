@@ -1,5 +1,3 @@
-from typing import Dict, Set
-
 from fastapi import APIRouter, Depends, HTTPException
 from starlette.status import HTTP_400_BAD_REQUEST
 
@@ -61,7 +59,6 @@ async def follow_for_user(
     )
 
 
-
 @router.delete(
     "/{username}/follow",
     response_model=ProfileInResponse,
@@ -91,4 +88,3 @@ async def unsubscribe_from_user(
     return ProfileInResponse(
         profile=profile.copy(update={"following": False})
     )
-
