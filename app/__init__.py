@@ -12,6 +12,9 @@ API_PREFIX: str = "/api"
 def get_application() -> FastAPI:
     application = FastAPI()
 
+    application.add_event_handler("startup", create_start_app_handler(application))
+    application.add_event_handler("shutdown", create_stop_app_handler(application))
+
     application.add_exception_handler(HTTPException, http_error_handler)
     application.add_exception_handler(RequestValidationError, http422_error_handler)
 
