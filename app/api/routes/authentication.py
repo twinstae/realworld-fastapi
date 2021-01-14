@@ -7,7 +7,7 @@ from app.models.domain.users import UserInDB
 from app.models.schemas.users import UserInResponse, UserInLogin, UserWithToken, UserInCreate
 from app.resources import strings
 from app.services import jwt
-from app.services.authentication import fake_user_DB, get_user_by_email, username_set, fake_user_DB_by_username
+from app.services.authentication import fake_user_DB, get_user_by_email, fake_user_DB_by_username
 
 router: APIRouter = APIRouter()
 
@@ -43,7 +43,7 @@ async def login(
 async def register(
         user_create: UserInCreate = Body(..., embed=True, alias="user")
 ) -> UserInResponse:
-    if user_create.username in username_set:
+    if user_create.username in fake_user_DB_by_username:
         raise bad_request_exception(strings.USERNAME_TAKEN)
 
     if user_create.email in fake_user_DB:

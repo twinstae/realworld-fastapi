@@ -14,7 +14,7 @@ def get_profile_by_username(
         username: str,
         requested_user: Optional[UserInDB] = None
 ):
-    user = get_user_by_username(username=username)
+    user: UserInDB = get_user_by_username(username=username)
     profile = Profile(
         username=user.username,
         bio=user.bio,

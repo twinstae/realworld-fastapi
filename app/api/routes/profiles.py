@@ -38,10 +38,12 @@ async def follow_for_user(
         user: User = Depends(get_current_user_authorizer()),
 ) -> ProfileInResponse:
     if user.username == profile.username:
-        raise bad_request_exception(strings.UNABLE_TO_FOLLOW_YOURSELF)
+        raise bad_request_exception(
+            strings.UNABLE_TO_FOLLOW_YOURSELF)
 
     if profile.following:
-        raise bad_request_exception(strings.USER_IS_ALREADY_FOLLOWED)
+        raise bad_request_exception(
+            strings.USER_IS_ALREADY_FOLLOWED)
 
     add_user_into_followers(
         target_user=profile,
@@ -49,7 +51,8 @@ async def follow_for_user(
     )
 
     return ProfileInResponse(
-        profile=profile.copy(update={"following": True})
+        profile=profile.copy(
+            update={"following": True})
     )
 
 
@@ -70,10 +73,12 @@ async def unsubscribe_from_user(
         user: User = Depends(get_current_user_authorizer()),
 ) -> ProfileInResponse:
     if user.username == profile.username:
-        raise bad_request_exception(strings.UNABLE_TO_FOLLOW_YOURSELF)
+        raise bad_request_exception(
+            strings.UNABLE_TO_FOLLOW_YOURSELF)
 
     if not profile.following:
-        raise bad_request_exception(strings.USER_IS_ALREADY_UNFOLLOWED)
+        raise bad_request_exception(
+            strings.USER_IS_ALREADY_UNFOLLOWED)
 
     remove_user_from_followers(
         target_user=profile,
@@ -81,5 +86,6 @@ async def unsubscribe_from_user(
     )
 
     return ProfileInResponse(
-        profile=profile.copy(update={"following": False})
+        profile=profile.copy(
+            update={"following": False})
     )
