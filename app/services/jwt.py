@@ -4,7 +4,6 @@ from typing import Dict
 import jwt
 from pydantic import ValidationError
 
-from app.models.domain.users import User
 from app.models.schemas.jwt import JWTUser, JWTMeta
 
 JWT_SUBJECT = "access"
@@ -24,9 +23,9 @@ def create_jwt_token(
     return jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
 
 
-def create_access_token_for_user(user: User, secret_key: str) -> str:
+def create_access_token_for_username(username: str, secret_key: str) -> str:
     return create_jwt_token(
-        jwt_content=JWTUser(username=user.username).dict(),
+        jwt_content=JWTUser(username=username).dict(),
         secret_key=secret_key,
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )

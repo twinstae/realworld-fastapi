@@ -1,9 +1,11 @@
+from typing import Union
+
 from fastapi import APIRouter, Body
 from starlette.status import HTTP_201_CREATED
 
 from app.api.routes.profiles import bad_request_exception
 from app.core.config import SECRET_KEY
-from app.models.domain.users import UserInDB
+from app.models.domain.users import UserInDB, User
 from app.models.schemas.users import UserInResponse, UserInLogin, UserWithToken, UserInCreate
 from app.resources import strings
 from app.services import jwt
@@ -61,14 +63,17 @@ async def register(
     return get_user_in_response(user)
 
 
-def get_user_in_response(user) -> UserInResponse:
-    token = jwt.create_access_token_for_user(user, str(SECRET_KEY))
+def get_user_in_response(user: Union[UserInDB, User]) -> UserInResponse:
+    token = jwt.create_access_token_for_username(
+        user.username,
+        str(SECRET_KEY)
+    )
     return UserInResponse(
-        user=get_user_with_token(token, user)
+        user=get_user_with_token(user, token)
     )
 
 
-def get_user_with_token(token, user):
+def get_user_with_token(user: Union[UserInDB, User], token: str) -> UserWithToken:
     return UserWithToken(
         username=user.username,
         email=user.email,

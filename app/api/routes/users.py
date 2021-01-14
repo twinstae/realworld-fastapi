@@ -23,7 +23,7 @@ async def retrieve_current_user(
     return get_user_in_response(user)
 
 
-def update_user(current_user: User, user_update: UserInUpdate) -> User:
+def update_user(current_user: User, user_update: UserInUpdate) -> UserInDB:
     user = fake_user_DB[current_user.email]
     new_user = UserInDB(
         username=user_update.username or user.username,

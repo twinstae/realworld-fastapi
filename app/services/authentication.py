@@ -1,7 +1,7 @@
 from typing import Dict, Set
 
 from app.api.dependencies.authentication import EntityDoesNotExist
-from app.models.domain.users import UserInDB, User
+from app.models.domain.users import UserInDB
 
 fake_user_DB: Dict[str, UserInDB] = {}
 fake_user_DB_by_username: Dict[str, UserInDB] = {}
