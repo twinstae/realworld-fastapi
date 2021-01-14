@@ -5,6 +5,7 @@ from starlette.exceptions import HTTPException
 from app.api.errors.http_error import http_error_handler
 from app.api.errors.validation_error import http422_error_handler
 from app.api.routes.api import router as api_router
+from app.core.events import create_start_app_handler, create_stop_app_handler
 
 API_PREFIX: str = "/api"
 
