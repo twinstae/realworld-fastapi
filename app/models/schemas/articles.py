@@ -4,18 +4,13 @@ from app.models.schemas.base import ArticleBase
 from app.models.orm import Article
 
 
-class ArticleForResponse(ArticleBase):
-    class Config:
-        orm_mode = True
-
-
 class ArticleInResponse(BaseModel):
-    article: ArticleForResponse
+    article: ArticleBase
 
     @staticmethod
-    def from_article(article: Article):
+    def from_article(article: Article, is_following: bool):
         return ArticleInResponse(
-            article=ArticleForResponse.from_orm(article)
+            article=ArticleBase.from_entity(article, is_following)
         )
 
 
@@ -32,5 +27,5 @@ class ArticleInUpdate(BaseModel):
 
 
 class ListOfArticlesInResponse(BaseModel):
-    articles: List[ArticleForResponse]
+    articles: List[ArticleBase]
     articles_count: int

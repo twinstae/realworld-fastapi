@@ -9,9 +9,6 @@ class ProfileInResponse(BaseModel):
 
     @staticmethod
     def from_profile(profile: Profile, is_following: bool):
-        ProfileInResponse(profile=ProfileBase(
-            username=profile.username,
-            bio=profile.bio,
-            image=profile.image,
-            following=is_following
+        ProfileInResponse(profile=ProfileBase.from_profile(
+            profile, is_following=is_following
         ))

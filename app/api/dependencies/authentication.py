@@ -34,7 +34,9 @@ def get_current_user_authorizer(*, required: bool = True) -> Callable:  # type: 
 
 def get_current_profile():
     current_user = await _get_current_user()
-    return await Profile.get_or_none(user=current_user)
+    current_profile = await Profile.get_or_none(user=current_user)
+    current_profile.following = False
+    return current_profile
 
 
 def _get_authorization_header_retriever(
