@@ -1,6 +1,5 @@
 from starlette.config import Config
 from starlette.datastructures import Secret
-from databases import DatabaseURL
 config = Config(".env")
 
 PROJECT_NAME: str = config("PROJECT_NAME", default="FastAPI example application")
@@ -10,6 +9,6 @@ API_PREFIX: str = "/api"
 SECRET_KEY: Secret = config("SECRET_KEY", cast=Secret)
 JWT_TOKEN_PREFIX = "Token"
 
-DATABASE_URL: DatabaseURL = config("DB_CONNECTION", cast=DatabaseURL)
+DATABASE_URL: str = config("DB_CONNECTION")
 MAX_CONNECTIONS_COUNT: int = config("MAX_CONNECTIONS_COUNT", cast=int, default=10)
 MIN_CONNECTIONS_COUNT: int = config("MIN_CONNECTIONS_COUNT", cast=int, default=10)
