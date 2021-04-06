@@ -1,16 +1,14 @@
-from typing import Dict, List
-
-from fastapi import APIRouter, Body
+from typing import List
+from fastapi import APIRouter, Body, HTTPException
 from starlette import status
+from starlette.status import HTTP_404_NOT_FOUND
 
 from app.api.routes.profiles import bad_request_exception
-from app.models.domain.articles import Article
+from app.models.orm.article import Article
 from app.models.schemas.articles import ArticleInResponse, ArticleInCreate, ArticleInUpdate, ListOfArticlesInResponse, \
     ArticleForResponse
 from app.resources import strings
 from app.services.articles import get_slug_for_article
-
-fake_db: Dict[str, Article] = {}
 
 router: APIRouter = APIRouter()
 
@@ -23,13 +21,10 @@ PREFIX: str = "articles:"
     name=PREFIX + "list-articles"
 )
 async def list_articles() -> ListOfArticlesInResponse:
-    articles: List[Article] = list(fake_db.values())[-10:]
+    articles: List[Article] = await Article.all()
 
     return ListOfArticlesInResponse(
-        articles=[
-            get_article_for_response(a)
-            for a in articles
-        ],
+        articles=[ArticleForResponse.from_orm(a) for a in articles],
         articles_count=len(articles)
     )
 
@@ -42,30 +37,8 @@ async def list_articles() -> ListOfArticlesInResponse:
 async def retrieve_article_by_slug(
         slug: str
 ) -> ArticleInResponse:
-    check_article_for_slug(slug)
-    return get_article_in_response(fake_db[slug])
-
-
-def get_article_for_response(article: Article) -> ArticleForResponse:
-    return ArticleForResponse(
-        title=article.title,
-        description=article.description,
-        body=article.body,
-        slug=article.slug,
-        created_at=article.created_at,
-        updated_at=article.updated_at
-    )
-
-
-def get_article_in_response(article: Article) -> ArticleInResponse:
-    return ArticleInResponse(
-        article=get_article_for_response(article=article)
-    )
-
-
-def check_article_for_slug(slug) -> None:
-    if slug not in fake_db:
-        raise bad_request_exception(strings.WRONG_SLUG_NO_ARTICLE)
+    article = await get_article_by_slug_or_404(slug)
+    return ArticleInResponse.from_article(article)
 
 
 @router.post(
@@ -78,16 +51,18 @@ async def create_new_article(
         article_create: ArticleInCreate = Body(..., embed=True, alias="article")
 ) -> ArticleInResponse:
     slug: str = get_slug_for_article(article_create.title)
-    check_article_for_slug(slug)
 
-    fake_db[slug] = Article(
+    if await Article.exists(slug=slug):
+        raise bad_request_exception(strings.WRONG_SLUG_NO_ARTICLE)
+
+    article = await Article.create(
         slug=slug,
         title=article_create.title,
         description=article_create.description,
         body=article_create.body
     )
 
-    return get_article_in_response(fake_db[slug])
+    return ArticleInResponse.from_article(article)
 
 
 @router.put(
@@ -99,15 +74,9 @@ async def update_article_by_slug(
         article_update: ArticleInUpdate,
         slug: str
 ) -> ArticleInResponse:
-    check_article_for_slug(slug)
-
-    article: Article = fake_db[slug]
-    article.title = article_update.title or article.title
-    article.description = article_update.description or article.description
-    article.body = article_update.body or article.body
-    fake_db[slug] = article
-
-    return get_article_in_response(fake_db[slug])
+    article = await get_article_by_slug_or_404(slug)
+    await article.update_from_dict(article_update.dict())
+    return ArticleInResponse.from_article(article)
 
 
 @router.delete(
@@ -118,5 +87,15 @@ async def update_article_by_slug(
 async def delete_by_slug(
         slug: str
 ) -> None:
-    check_article_for_slug(slug)
-    del fake_db[slug]
+    article = await get_article_by_slug_or_404(slug)
+    await article.delete()
+
+
+async def get_article_by_slug_or_404(slug):
+    article = await Article.get_or_none(slug=slug)
+    if article is None:
+        raise HTTPException(
+            status_code=HTTP_404_NOT_FOUND,
+            detail=strings.WRONG_SLUG_NO_ARTICLE
+        )
+    return article
