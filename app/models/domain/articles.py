@@ -1,7 +1,7 @@
 from app.models.common import DateTimeModelMixin, IDModelMixin
 
 
-class Article(IDModelMixin, DateTimeModelMixin):
+class ArticleBase(IDModelMixin, DateTimeModelMixin):
     slug: str
     title: str
     description: str
