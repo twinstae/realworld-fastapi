@@ -1,8 +1,6 @@
 from typing import Optional, List
-
 from pydantic.main import BaseModel
-
-from app.models.domain.articles import ArticleBase
+from app.models.schemas.base import ArticleBase
 from app.models.orm import Article
 
 

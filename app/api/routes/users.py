@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Body
 from app.api.dependencies.authentication import get_current_user_authorizer
 from app.api.routes.profiles import bad_request_exception
-from app.models.domain.users import UserBase
+from app.models.schemas.base import UserBase
 from app.models.orm.user import User
 from app.models.schemas.users import UserInResponse, UserInUpdate
 from app.resources import strings
@@ -20,11 +20,6 @@ async def retrieve_current_user(
         user: UserBase = Depends(get_current_user_authorizer())
 ) -> UserInResponse:
     return UserInResponse.from_user(user)
-
-
-async def update_user(current_user: User, user_update: UserInUpdate) -> User:
-    await current_user.update_from_dict(user_update.dict())
-    return current_user
 
 
 @router.put(
@@ -46,3 +41,8 @@ async def update_current_user(
 
     user = update_user(current_user, user_update)
     return UserInResponse.from_user(user)
+
+
+async def update_user(current_user: User, user_update: UserInUpdate) -> User:
+    await current_user.update_from_dict(user_update.dict())
+    return current_user

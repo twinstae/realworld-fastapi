@@ -4,7 +4,7 @@ from pydantic import EmailStr, HttpUrl
 from pydantic.main import BaseModel
 
 from app.core.config import SECRET_KEY
-from app.models.domain.users import UserBase
+from app.models.schemas.base import UserBase
 from app.services import jwt
 
 

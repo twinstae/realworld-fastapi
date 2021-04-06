@@ -7,15 +7,6 @@ router = APIRouter()
 router.include_router(
     articles.router,
     tags=["articles"])
-router.include_router(
-    authentication.router,
-    tags=["authentications"],
-    prefix="/users")
-router.include_router(
-    profiles.router,
-    tags=["profiles"],
-    prefix="/profiles")
-router.include_router(
-    users.router,
-    tags=["users"],
-    prefix="/users")
+router.include_router(authentication.router, tags=["authentications"], prefix="/users")
+router.include_router(profiles.router, tags=["profiles"], prefix="/profiles")
+router.include_router(users.router, tags=["users"], prefix="/users")

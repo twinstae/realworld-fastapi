@@ -6,6 +6,7 @@ from starlette import status
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import JWT_TOKEN_PREFIX, SECRET_KEY
+from app.models.orm import Profile
 from app.models.orm.user import User
 from app.resources import strings
 from app.services import jwt
@@ -29,6 +30,11 @@ class RWAPIKeyHeader(APIKeyHeader):
 
 def get_current_user_authorizer(*, required: bool = True) -> Callable:  # type: ignore
     return _get_current_user if required else _get_current_user_optional
+
+
+def get_current_profile():
+    current_user = await _get_current_user()
+    return await Profile.get_or_none(user=current_user)
 
 
 def _get_authorization_header_retriever(
