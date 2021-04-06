@@ -6,7 +6,7 @@ from starlette import status
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import JWT_TOKEN_PREFIX, SECRET_KEY
-from app.models.domain.users import User
+from app.models.orm.user import User
 from app.resources import strings
 from app.services import jwt
 
@@ -73,10 +73,11 @@ async def _get_current_user(
         username = jwt.get_username_from_token(token, str(SECRET_KEY))
     except ValueError:
         raise forbidden_exception(strings.MALFORMED_PAYLOAD)
-    try:
-        return User()  # get_user_by_username(username=username)
-    except EntityDoesNotExist:
+
+    user = await User.get_or_none(username=username)
+    if user is None:
         raise forbidden_exception(strings.MALFORMED_PAYLOAD)
+    return user
 
 
 def forbidden_exception(detail: str):
