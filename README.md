@@ -20,9 +20,7 @@ https://github.com/nsidnev/fastapi-realworld-example-app 의 실습
 - Aiosqlite : async SQLite3 SQL DB connection
 - Asyncpg : async Postegral SQL DB connection
 - Asyncio : 위 두 프레임워크가 의존하는 async highlevel api
-- SQLAlchemy : ORM, 모델 정의
-- Databases : Async ORM for SQLAlchemy
-- Alembic : lightweight DB migration for SQLAlchemy
+- Tortoise : Async ORM for python
 
 ### Auth
 - Bcrypt : password hash
@@ -30,6 +28,7 @@ https://github.com/nsidnev/fastapi-realworld-example-app 의 실습
 
 ### APIClient for Test
 - requests : TestClient 를 제공
+- httpx : async client
 
 ### 그 외 기타
 - slugify : title등을 slug로 변환
