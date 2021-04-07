@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Body, HTTPException, Depends
+from fastapi import APIRouter, Body, HTTPException, Depends, Query
 from starlette import status
 from starlette.status import HTTP_404_NOT_FOUND
 from app.api.dependencies.authentication import get_current_profile, get_current_profile_optional
@@ -21,12 +21,21 @@ PREFIX: str = "articles:"
     response_model=ListOfArticlesInResponse,
     name=PREFIX + "list-articles"
 )
-async def list_articles() -> ListOfArticlesInResponse:
-    articles: List[Article] = await Article.all().prefetch_related("author")
+async def list_articles(
+        author: str = Query(None, max_length=16),
+        limit: int = Query(20),
+        offset: int = Query(0),
+) -> ListOfArticlesInResponse:
+    query = Article.all().prefetch_related("author")
+    if author is not None:
+        query = query.filter(author__username=author)
+
+    articles: List[Article] = await query.offset(offset).limit(limit)
+    articles_count = await query.count()
 
     return ListOfArticlesInResponse(
         articles=[ArticleBase.from_entity(a, False) for a in articles],
-        articles_count=len(articles)
+        articles_count=articles_count
     )
 
 

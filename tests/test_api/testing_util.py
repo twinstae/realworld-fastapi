@@ -40,6 +40,7 @@ REGISTER_DATA_2 = {
         'password': "t1e2s3t4"
     }
 }
+USER_2_NAME = REGISTER_DATA_2["user"]["username"]
 ARTICLE_1 = get_article_dict('타이틀', '디스크립션', '바디', ['react', '태그'])
 ARTICLE_2 = get_article_dict("제목1", "개요2", "내용3", ['django', '태그4'])
 
