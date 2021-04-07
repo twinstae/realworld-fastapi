@@ -10,7 +10,7 @@ def create_start_app_handler(app: FastAPI) -> Callable:
     async def start_app() -> None:
         await Tortoise.init(
             db_url=DATABASE_URL,
-            modules={'models': ['app.models.orm']}
+            modules={'app': ['app.models.orm']}
         )
         await Tortoise.generate_schemas()
 
