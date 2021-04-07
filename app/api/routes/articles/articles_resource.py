@@ -1,10 +1,8 @@
-from typing import List, Type
+from typing import List, Optional
 from fastapi import APIRouter, Body, HTTPException, Depends
-from pypika import Table
 from starlette import status
 from starlette.status import HTTP_404_NOT_FOUND
-from tortoise.functions import Function
-from app.api.dependencies.authentication import get_current_profile
+from app.api.dependencies.authentication import get_current_profile, get_current_profile_optional
 from app.api.routes.profiles import bad_request_exception
 from app.models.orm import Profile
 from app.models.orm.article import Article
@@ -12,7 +10,6 @@ from app.models.schemas.articles import ArticleInResponse, ArticleInCreate, Arti
 from app.models.schemas.base import ArticleBase
 from app.resources import strings
 from app.services.articles import get_slug_for_article
-from tortoise.models import Model
 
 router: APIRouter = APIRouter()
 
@@ -40,11 +37,13 @@ async def list_articles() -> ListOfArticlesInResponse:
 )
 async def retrieve_article_by_slug(
     slug: str,
-    current_profile: Profile = Depends(get_current_profile())
+    current_profile: Optional[Profile] = Depends(get_current_profile_optional)
 ) -> ArticleInResponse:
     article = await get_article_by_slug_or_404(slug)
-    isFollowing = await current_profile.is_following(article.author)
-    return ArticleInResponse.from_article(article, isFollowing)
+    is_following = False
+    if current_profile:
+        is_following = await current_profile.is_following(article.author)
+    return ArticleInResponse.from_article(article, is_following)
 
 
 @router.post(
@@ -55,7 +54,7 @@ async def retrieve_article_by_slug(
 )
 async def create_new_article(
         article_create: ArticleInCreate = Body(..., embed=True, alias="article"),
-        current_profile: Profile = Depends(get_current_profile())
+        current_profile: Profile = Depends(get_current_profile)
 ) -> ArticleInResponse:
     slug: str = get_slug_for_article(article_create.title)
 
@@ -78,13 +77,13 @@ async def create_new_article(
     name=PREFIX + "update-article",
 )
 async def update_article_by_slug(
-        article_update: ArticleInUpdate,
         slug: str,
-        current_profile: Profile = Depends(get_current_profile())
+        article_update: ArticleInUpdate = Body(..., embed=True, alias="article"),
+        current_profile: Profile = Depends(get_current_profile)
 ) -> ArticleInResponse:
     article = await get_article_by_slug_or_404(slug)
 
-    if article.author is not current_profile:
+    if article.author.id is not current_profile.id:
         raise bad_request_exception("You can modify only your article")
 
     await article.update_from_dict(article_update.dict())
@@ -98,10 +97,10 @@ async def update_article_by_slug(
 )
 async def delete_by_slug(
     slug: str,
-    current_profile: Profile = Depends(get_current_profile())
+    current_profile: Profile = Depends(get_current_profile)
 ) -> None:
     article = await get_article_by_slug_or_404(slug)
-    if article.author is not current_profile:
+    if article.author.id is not current_profile.id:
         raise bad_request_exception("You can delete only your article")
     await article.delete()
 
