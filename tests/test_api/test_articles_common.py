@@ -1,3 +1,4 @@
+from app.resources import strings
 from tests.test_api.testing_util import TestCaseWithAuth, ARTICLE_URL, USER_2_NAME
 
 
@@ -21,6 +22,11 @@ class ArticleTest(TestCaseWithAuth):
 
         self.unfavorite(self.slug_1, self.token_header_1)  # teardown
 
+    def test_favorite_article_존재하지_않는(self):
+        response = self.favorite("존재하지않는슬러그", self.token_header_1)
+        self.assert_404_NOT_FOUND(response)
+        assert response.json() == {'errors': [strings.WRONG_SLUG_NO_ARTICLE]}
+
     def favorite(self, slug: str, headers):
         return self.client.post(ARTICLE_URL + "/" + slug + "/favorite", headers=headers)
 
@@ -34,6 +40,11 @@ class ArticleTest(TestCaseWithAuth):
 
         self.assert_200_OK(response)
         assert response.json()["article"]["favorite"] is False
+
+    def test_unfavorite_article_존재하지_않는(self):
+        response = self.unfavorite("존재하지않는슬러그", self.token_header_1)
+        self.assert_404_NOT_FOUND(response)
+        assert response.json() == {'errors': [strings.WRONG_SLUG_NO_ARTICLE]}
 
     def test_get_favorite_article_list(self):
         self.favorite(self.slug_1, self.token_header_2)

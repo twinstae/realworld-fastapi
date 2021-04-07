@@ -1,6 +1,7 @@
 import asyncio
 
 from app.models.orm import Article, User
+from app.resources import strings
 from tests.test_api.testing_util import get_article_data, TestCaseWithAuth, ARTICLE_URL, ARTICLE_1, ARTICLE_2, \
     get_article_dict, USER_2_NAME
 
@@ -72,7 +73,7 @@ class ArticleDangerousTest(TestCaseWithAuth):
             headers=self.token_header_1
         )
         self.assert_404_NOT_FOUND(response)
-        assert response.json() == {'errors': ['there is no article for the slug']}
+        assert response.json() == {'errors': [strings.WRONG_SLUG_NO_ARTICLE]}
 
     def test_update_others_article(self):
         self.slug_1 = self.create_article(ARTICLE_1, token_header=self.token_header_1)
@@ -103,7 +104,7 @@ class ArticleDangerousTest(TestCaseWithAuth):
             ARTICLE_URL + "/존재하지않는슬러그", headers=self.token_header_1
         )
         self.assert_404_NOT_FOUND(response)
-        assert response.json() == {'errors': ['there is no article for the slug']}
+        assert response.json() == {'errors': [strings.WRONG_SLUG_NO_ARTICLE]}
 
     def test_delete_others_article(self):
         self.slug_1 = self.create_article(ARTICLE_1, token_header=self.token_header_1)
@@ -135,7 +136,7 @@ class ArticleTest(TestCaseWithAuth):
     def test_retrieve_article_not_exist(self):
         response = self.client.get(ARTICLE_URL+"/존재하지않는슬러그")
         self.assert_404_NOT_FOUND(response)
-        assert response.json() == {'errors': ['there is no article for the slug']}
+        assert response.json() == {'errors': [strings.WRONG_SLUG_NO_ARTICLE]}
 
     def test_list_articles(self):
         response = self.client.get(ARTICLE_URL)
