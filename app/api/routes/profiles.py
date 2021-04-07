@@ -1,6 +1,8 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends
 
-from app.api.dependencies.authentication import get_current_profile
+from app.api.dependencies.authentication import get_current_profile, get_current_profile_optional
 from app.api.dependencies.profiles import get_profile_by_username_from_path
 from app.api.errors.exceptions import HTTP_400_BAD_REQUEST_Exception
 from app.models.orm import Profile
@@ -18,16 +20,18 @@ PREFIX = "profiles:"
 )
 async def retrieve_profile_by_username(
     target_profile: Profile = Depends(get_profile_by_username_from_path),
-    current_profile: Profile = Depends(get_current_profile)
+    current_profile: Optional[Profile] = Depends(get_current_profile_optional)
 ) -> ProfileInResponse:
+    is_following = False
+    if current_profile is not None:
+        is_following = await current_profile.is_following(target_profile)
     return ProfileInResponse.from_profile(
-        target_profile,
-        is_following=await current_profile.is_following(target_profile)
+        target_profile, is_following
     )
 
 
 @router.post(
-    "/{username}follow",
+    "/{username}/follow",
     response_model=ProfileInResponse,
     name=PREFIX + "follow-profile"
 )
@@ -41,7 +45,7 @@ async def follow_profile(
     if await current_profile.is_following(target_profile):
         raise HTTP_400_BAD_REQUEST_Exception(strings.USER_IS_ALREADY_FOLLOWED)
 
-    current_profile.followings.add(target_profile)
+    await current_profile.followings.add(target_profile)
 
     return ProfileInResponse.from_profile(target_profile, is_following=True)
 
@@ -61,6 +65,6 @@ async def unfollow_profile(
     if not await current_profile.is_following(target_profile):
         raise HTTP_400_BAD_REQUEST_Exception(strings.USER_IS_ALREADY_UNFOLLOWED)
 
-    current_profile.followings.remove(target_profile)
+    await current_profile.followings.remove(target_profile)
 
     return ProfileInResponse.from_profile(target_profile, is_following=False)

@@ -63,6 +63,7 @@ class TestCaseWithAuth(TestCase):
     @staticmethod
     def check_item(actual_item, expected_item):
         for field_name in expected_item.keys():
+            assert field_name in actual_item, actual_item
             actual_field = actual_item[field_name]
             expected_field = expected_item[field_name]
 

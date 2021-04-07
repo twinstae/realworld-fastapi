@@ -8,7 +8,6 @@ class ProfileInResponse(BaseModel):
     profile: ProfileBase
 
     @staticmethod
-    def from_profile(profile: Profile, is_following: bool):
-        ProfileInResponse(profile=ProfileBase.from_profile(
-            profile, is_following=is_following
-        ))
+    def from_profile(profile: Profile, is_following: bool) -> "ProfileInResponse":
+        profile_base = ProfileBase.from_profile(profile, is_following)
+        return ProfileInResponse(profile=profile_base)

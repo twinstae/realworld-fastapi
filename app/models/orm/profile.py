@@ -13,6 +13,8 @@ class Profile(Model):
     favorite_list = fields.ManyToManyField("app.Article", related_name="favorited", through="favorite")
 
     async def is_following(self, target):
+        if self.id == target.id:
+            return False
         return await self.followings.filter(id=target.id).exists()
 
     async def have_favorited(self, article) -> bool:
