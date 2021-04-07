@@ -32,13 +32,6 @@ def get_current_user_authorizer(*, required: bool = True) -> Callable:  # type: 
     return _get_current_user if required else _get_current_user_optional
 
 
-def get_current_profile():
-    current_user = await _get_current_user()
-    current_profile = await Profile.get_or_none(user=current_user)
-    current_profile.following = False
-    return current_profile
-
-
 def _get_authorization_header_retriever(
         *,
         required: bool = True,
@@ -88,6 +81,12 @@ async def _get_current_user(
     return user
 
 
+async def get_current_profile(
+        current_user: User = Depends(_get_current_user)
+):
+    return await Profile.get(user=current_user)
+
+
 def forbidden_exception(detail: str):
     return HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -100,4 +99,12 @@ async def _get_current_user_optional(
 ) -> Optional[User]:
     if token:
         return await _get_current_user(token)
+    return None
+
+
+async def get_current_profile_optional(
+        current_user: User = Depends(_get_current_user_optional)
+) -> Optional[Profile]:
+    if current_user:
+        return await Profile.get_or_none(user=current_user)
     return None
