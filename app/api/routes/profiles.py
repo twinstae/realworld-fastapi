@@ -18,7 +18,7 @@ PREFIX = "profiles:"
 )
 async def retrieve_profile_by_username(
     target_profile: Profile = Depends(get_profile_by_username_from_path),
-    current_profile: Profile = Depends(get_current_profile())
+    current_profile: Profile = Depends(get_current_profile)
 ) -> ProfileInResponse:
     return ProfileInResponse.from_profile(
         target_profile,
@@ -33,7 +33,7 @@ async def retrieve_profile_by_username(
 )
 async def follow_user(
         target_profile: Profile = Depends(get_profile_by_username_from_path),
-        current_profile: Profile = Depends(get_current_profile())
+        current_profile: Profile = Depends(get_current_profile)
 ) -> ProfileInResponse:
     if current_profile == target_profile:
         raise bad_request_exception(strings.UNABLE_TO_FOLLOW_YOURSELF)
@@ -60,7 +60,7 @@ def bad_request_exception(detail: str) -> HTTPException:
 )
 async def unsubscribe_from_user(
         target_profile: Profile = Depends(get_profile_by_username_from_path),
-        current_profile: Profile = Depends(get_current_profile()),
+        current_profile: Profile = Depends(get_current_profile),
 ) -> ProfileInResponse:
     if target_profile == current_profile:
         raise bad_request_exception(strings.UNABLE_TO_FOLLOW_YOURSELF)
