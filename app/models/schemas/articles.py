@@ -1,16 +1,26 @@
 from typing import Optional, List
 from pydantic.main import BaseModel
 from app.models.schemas.base import ArticleBase
-from app.models.orm import Article
+from app.models.orm import Article, Profile
 
 
 class ArticleInResponse(BaseModel):
     article: ArticleBase
 
     @staticmethod
-    def from_article(article: Article, is_following: bool):
+    async def from_article(article: Article, current_profile: Profile, favorite=None):
+        is_following = False
+        if current_profile and current_profile.id != article.author.id:
+            is_following = await current_profile.is_following(article.author)
+
+        if favorite is None:
+            if current_profile:
+                favorite = await current_profile.have_favorited(article)
+            else:
+                favorite = False
+
         return ArticleInResponse(
-            article=ArticleBase.from_entity(article, is_following)
+            article=ArticleBase.from_entity(article, is_following, favorite)
         )
 
 
