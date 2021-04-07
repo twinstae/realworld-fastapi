@@ -142,14 +142,6 @@ class ArticleTest(TestCaseWithAuth):
         self.assert_200_OK(response)
         self.expect_article_list(response, length=20, first_title=ARTICLE_1["title"], count=41)
 
-    @staticmethod
-    def expect_article_list(response, length=20, first_title="타이틀", count=41):
-        RESPONSE_JSON = response.json()
-        articles = RESPONSE_JSON["articles"]
-        assert len(articles) == length
-        assert articles[0]["title"] == first_title
-        assert RESPONSE_JSON["articles_count"] == count
-
     def test_list_articles_with_offset(self):
         response = self.client.get(ARTICLE_URL+"?offset=20")
         self.assert_200_OK(response)

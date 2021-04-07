@@ -144,3 +144,11 @@ class TestCaseWithAuth(TestCase):
         cls.assert_201_CREATED(response)
         RESPONSE_JSON = response.json()
         return RESPONSE_JSON["article"]["slug"]
+
+    @staticmethod
+    def expect_article_list(response, length=20, first_title="타이틀", count=41):
+        RESPONSE_JSON = response.json()
+        articles = RESPONSE_JSON["articles"]
+        assert len(articles) == length, f"{len(articles)} =/= {length}"
+        assert articles[0]["title"] == first_title, f'{articles[0]["title"]} =/= {first_title}'
+        assert RESPONSE_JSON["articles_count"] == count, f'{RESPONSE_JSON["articles_count"]} =/= {count}'
