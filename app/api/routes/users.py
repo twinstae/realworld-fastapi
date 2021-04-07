@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Body
 from app.api.dependencies.authentication import get_current_user_authorizer
-from app.api.routes.profiles import bad_request_exception
+from app.api.errors.exceptions import HTTP_400_BAD_REQUEST_Exception
 from app.models.schemas.base import UserBase
 from app.models.orm.user import User
 from app.models.schemas.users import UserInResponse, UserInUpdate
@@ -33,11 +33,11 @@ async def update_current_user(
 ) -> UserInResponse:
     if user_update.username and user_update.username != current_user.username:
         if await check_username_is_taken(user_update.username):
-            raise bad_request_exception(strings.USERNAME_TAKEN)
+            raise HTTP_400_BAD_REQUEST_Exception(strings.USERNAME_TAKEN)
 
     if user_update.email and user_update.email != current_user.email:
         if await check_email_is_taken(user_update.email):
-            raise bad_request_exception(strings.EMAIL_TAKEN)
+            raise HTTP_400_BAD_REQUEST_Exception(strings.EMAIL_TAKEN)
 
     user = update_user(current_user, user_update)
     return UserInResponse.from_user(user)

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Body
 from starlette.status import HTTP_201_CREATED
-from app.api.routes.profiles import bad_request_exception
+
+from app.api.errors.exceptions import HTTP_400_BAD_REQUEST_Exception
 from app.models.orm import Profile
 from app.models.orm.user import User
 from app.models.schemas.users import UserInResponse, UserInLogin, UserInCreate
@@ -23,7 +24,7 @@ async def login(
     user = await User.get_or_none(email=user_login.email)
 
     if not user.check_password(user_login.password):
-        raise bad_request_exception(strings.INCORRECT_LOGIN_INPUT)
+        raise HTTP_400_BAD_REQUEST_Exception(strings.INCORRECT_LOGIN_INPUT)
     return UserInResponse.from_user(user)
 
 
@@ -37,10 +38,10 @@ async def register(
         user_create: UserInCreate = Body(..., embed=True, alias="user")
 ) -> UserInResponse:
     if await User.exists(username=user_create.username):
-        raise bad_request_exception(strings.USERNAME_TAKEN)
+        raise HTTP_400_BAD_REQUEST_Exception(strings.USERNAME_TAKEN)
 
     if await User.exists(email=user_create.email):
-        raise bad_request_exception(strings.EMAIL_TAKEN)
+        raise HTTP_400_BAD_REQUEST_Exception(strings.EMAIL_TAKEN)
 
     user = await create_user_and_set_password(user_create)
     await Profile.create(user=user, username=user.username)

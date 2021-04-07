@@ -1,16 +1,15 @@
 from typing import List, Optional
-from fastapi import APIRouter, Body, HTTPException, Depends, Query
+from fastapi import APIRouter, Body, Depends, Query
 from starlette import status
-from starlette.status import HTTP_404_NOT_FOUND
-from app.api.dependencies.authentication import get_current_profile, get_current_profile_optional
-from app.api.routes.profiles import bad_request_exception
+from app.api.dependencies.authentication import get_current_profile
+from app.api.errors.exceptions import HTTP_400_BAD_REQUEST_Exception
 from app.models.orm import Profile
 from app.models.orm.article import Article
 from app.models.schemas.articles import ArticleInResponse, ArticleInCreate, ArticleInUpdate, ListOfArticlesInResponse
 from app.models.schemas.base import ArticleBase
 from app.resources import strings
-from app.services.articles import get_slug_for_article
-
+from app.services.articles import get_slug_for_article, get_article_by_slug_from_path
+from app.api.dependencies.authentication import get_current_profile_optional
 router: APIRouter = APIRouter()
 
 PREFIX: str = "articles:"
@@ -23,12 +22,16 @@ PREFIX: str = "articles:"
 )
 async def list_articles(
         author: str = Query(None, max_length=16),
+        favorited: str = Query(None, max_length=16),
         limit: int = Query(20),
         offset: int = Query(0),
 ) -> ListOfArticlesInResponse:
     query = Article.all().prefetch_related("author")
+
     if author is not None:
         query = query.filter(author__username=author)
+    if favorited is not None:
+        query = query.filter(favorited__username=favorited)
 
     articles: List[Article] = await query.offset(offset).limit(limit)
     articles_count = await query.count()
@@ -45,14 +48,10 @@ async def list_articles(
     name=PREFIX + "get-article"
 )
 async def retrieve_article_by_slug(
-    slug: str,
+    article: Article = Depends(get_article_by_slug_from_path),
     current_profile: Optional[Profile] = Depends(get_current_profile_optional)
 ) -> ArticleInResponse:
-    article = await get_article_by_slug_or_404(slug)
-    is_following = False
-    if current_profile:
-        is_following = await current_profile.is_following(article.author)
-    return ArticleInResponse.from_article(article, is_following)
+    return await ArticleInResponse.from_article(article, current_profile)
 
 
 @router.post(
@@ -68,7 +67,7 @@ async def create_new_article(
     slug: str = get_slug_for_article(article_create.title)
 
     if await Article.exists(slug=slug):
-        raise bad_request_exception(strings.WRONG_SLUG_NO_ARTICLE)
+        raise HTTP_400_BAD_REQUEST_Exception(strings.WRONG_SLUG_NO_ARTICLE)
 
     article = await Article.create(
         slug=slug,
@@ -77,7 +76,7 @@ async def create_new_article(
         body=article_create.body,
         author=current_profile
     )
-    return ArticleInResponse.from_article(article, False)
+    return await ArticleInResponse.from_article(article, current_profile)
 
 
 @router.put(
@@ -86,17 +85,15 @@ async def create_new_article(
     name=PREFIX + "update-article",
 )
 async def update_article_by_slug(
-        slug: str,
+        article: Article = Depends(get_article_by_slug_from_path),
         article_update: ArticleInUpdate = Body(..., embed=True, alias="article"),
         current_profile: Profile = Depends(get_current_profile)
 ) -> ArticleInResponse:
-    article = await get_article_by_slug_or_404(slug)
-
     if article.author.id is not current_profile.id:
-        raise bad_request_exception("You can modify only your article")
+        raise HTTP_400_BAD_REQUEST_Exception("You can modify only your article")
 
     await article.update_from_dict(article_update.dict())
-    return ArticleInResponse.from_article(article, False)
+    return await ArticleInResponse.from_article(article, current_profile)
 
 
 @router.delete(
@@ -105,20 +102,9 @@ async def update_article_by_slug(
     name=PREFIX + "delete-article"
 )
 async def delete_by_slug(
-    slug: str,
+    article: Article = Depends(get_article_by_slug_from_path),
     current_profile: Profile = Depends(get_current_profile)
 ) -> None:
-    article = await get_article_by_slug_or_404(slug)
     if article.author.id is not current_profile.id:
-        raise bad_request_exception("You can delete only your article")
+        raise HTTP_400_BAD_REQUEST_Exception("You can delete only your article")
     await article.delete()
-
-
-async def get_article_by_slug_or_404(slug) -> Article:
-    article = await Article.get_or_none(slug=slug).prefetch_related("author")
-    if article is None:
-        raise HTTPException(
-            status_code=HTTP_404_NOT_FOUND,
-            detail=strings.WRONG_SLUG_NO_ARTICLE
-        )
-    return article
