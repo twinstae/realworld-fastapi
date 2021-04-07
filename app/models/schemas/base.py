@@ -26,18 +26,20 @@ class ProfileBase(BaseModel):
 
 
 class ArticleBase(IDModelMixin, DateTimeModelMixin):
+    author: ProfileBase
     slug: str
     title: str
     description: str
     body: str
-    author: ProfileBase
+    favorite: bool
 
     @staticmethod
-    def from_entity(article: Article, is_following):
+    def from_entity(article: Article, is_following, favorite=False):
         return ArticleBase(
             slug=article.slug,
             title=article.title,
             description=article.description,
             body=article.body,
-            author=ProfileBase.from_profile(article.author, is_following)
+            author=ProfileBase.from_profile(article.author, is_following),
+            favorite=favorite
         )
