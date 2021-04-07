@@ -109,3 +109,6 @@ venv.bak/
 # Project
 postgres-data
 tests/test_api/test.db
+test.db-wal
+test.db-shm
+test.db
