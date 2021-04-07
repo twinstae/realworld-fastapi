@@ -10,7 +10,7 @@ class Article(Model):
     body = fields.TextField()
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
-    author = fields.ForeignKeyField('app.models.orm.Profile', related_name="articles")
+    author = fields.ForeignKeyField('app.Profile', related_name="articles")
 
     def __repr__(self):
         return f"""Article(

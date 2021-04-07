@@ -14,6 +14,11 @@ class ArticleInResponse(BaseModel):
         )
 
 
+class ListOfArticlesInResponse(BaseModel):
+    articles: List[ArticleBase]
+    articles_count: int
+
+
 class ArticleInCreate(BaseModel):
     title: str
     description: str
@@ -24,8 +29,3 @@ class ArticleInUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     body: Optional[str] = None
-
-
-class ListOfArticlesInResponse(BaseModel):
-    articles: List[ArticleBase]
-    articles_count: int

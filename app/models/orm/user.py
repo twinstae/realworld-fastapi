@@ -16,5 +16,3 @@ class User(Model):
     def change_password(self, password: str) -> None:
         self.salt = security.generate_salt()
         self.hashed_password = security.get_password_hash(self.salt + password)
-        print(len(self.salt))
-        print(len(self.hashed_password))
