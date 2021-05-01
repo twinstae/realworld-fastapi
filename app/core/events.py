@@ -1,10 +1,10 @@
+from app.models.orm.user import User
 from typing import Callable
 
 from fastapi import FastAPI
 from loguru import logger
 from tortoise import Tortoise
-from app.core.config import DATABASE_URL
-
+from app.core.config import DATABASE_URL, IS_TEST
 
 def create_start_app_handler(app: FastAPI) -> Callable:
     async def start_app() -> None:
@@ -18,7 +18,11 @@ def create_start_app_handler(app: FastAPI) -> Callable:
 
 
 def create_stop_app_handler(app: FastAPI) -> Callable:
+    
     @logger.catch
     async def stop_app() -> None:
+        if IS_TEST:
+            await User.all().delete()
+
         await Tortoise.close_connections()
     return stop_app
