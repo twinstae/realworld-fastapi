@@ -53,6 +53,7 @@ class ArticleDangerousTest(TestCaseWithAuth):
 
     def test_update_article_by_slug(self):
         self.slug_1 = self.create_article(ARTICLE_1, token_header=self.token_header_1)
+
         response = self.client.put(
             ARTICLE_URL+"/"+self.slug_1, json=UPDATE_DATA,
             headers=self.token_header_1
@@ -83,7 +84,7 @@ class ArticleDangerousTest(TestCaseWithAuth):
         )
 
         self.assert_400_BAD_REQUEST(response)
-        assert response.json() == {'errors': ["You can modify only your article"]}
+        assert "You can modify only your article" in response.json()['errors'][0]
 
     def test_delete_article_by_slug(self):
         self.slug_1 = self.create_article(ARTICLE_1, token_header=self.token_header_1)
@@ -111,7 +112,7 @@ class ArticleDangerousTest(TestCaseWithAuth):
 
         response = self.client.delete(ARTICLE_URL + "/" + self.slug_1, headers=self.token_header_2)
         self.assert_400_BAD_REQUEST(response)
-        assert response.json() == {'errors': ["You can delete only your article"]}
+        assert "You can delete only your article" in response.json()['errors'][0]
 
 
 class ArticleTest(TestCaseWithAuth):

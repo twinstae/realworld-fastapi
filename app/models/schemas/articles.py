@@ -8,7 +8,7 @@ class ArticleInResponse(BaseModel):
     article: ArticleBase
 
     @staticmethod
-    async def from_article(article: Article, current_profile: Profile, favorite=None):
+    async def from_article(article: Article, current_profile: Optional[Profile], favorite=None):
         is_following = False
         if current_profile and current_profile.id != article.author.id:
             is_following = await current_profile.is_following(article.author)

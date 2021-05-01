@@ -89,8 +89,12 @@ async def update_article_by_slug(
         article_update: ArticleInUpdate = Body(..., embed=True, alias="article"),
         current_profile: Profile = Depends(get_current_profile)
 ) -> ArticleInResponse:
-    if article.author.id is not current_profile.id:
-        raise HTTP_400_BAD_REQUEST_Exception("You can modify only your article")
+
+
+    if article.author.id != current_profile.id:
+        raise HTTP_400_BAD_REQUEST_Exception(
+                f"""You can modify only your article."""
+            )
 
     await article.update_from_dict(article_update.dict())
     return await ArticleInResponse.from_article(article, current_profile)
@@ -105,6 +109,10 @@ async def delete_by_slug(
     article: Article = Depends(get_article_by_slug_from_path),
     current_profile: Profile = Depends(get_current_profile)
 ) -> None:
-    if article.author.id is not current_profile.id:
-        raise HTTP_400_BAD_REQUEST_Exception("You can delete only your article")
+    assert type(article.author.id) == type(current_profile.id)
+
+    if article.author.id != current_profile.id:
+        raise HTTP_400_BAD_REQUEST_Exception(
+                f"You can delete only your article"
+            )
     await article.delete()
