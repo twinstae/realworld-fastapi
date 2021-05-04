@@ -61,13 +61,10 @@ async def retrieve_article_by_slug(
     name=PREFIX + "create-article"
 )
 async def create_new_article(
-        article_create: ArticleInCreate = Body(..., embed=True, alias="article"),
-        current_profile: Profile = Depends(get_current_profile)
+    article_create: ArticleInCreate = Body(..., embed=True, alias="article"),
+    current_profile: Profile = Depends(get_current_profile)
 ) -> ArticleInResponse:
     slug: str = get_slug_for_article(article_create.title)
-
-    if await Article.exists(slug=slug):
-        raise HTTP_400_BAD_REQUEST_Exception(strings.WRONG_SLUG_NO_ARTICLE)
 
     article = await Article.create(
         slug=slug,
@@ -85,12 +82,11 @@ async def create_new_article(
     name=PREFIX + "update-article",
 )
 async def update_article_by_slug(
-        article: Article = Depends(get_article_by_slug_from_path),
-        article_update: ArticleInUpdate = Body(..., embed=True, alias="article"),
-        current_profile: Profile = Depends(get_current_profile)
+    article: Article = Depends(get_article_by_slug_from_path),
+    article_update: ArticleInUpdate = Body(..., embed=True, alias="article"),
+    current_profile: Profile = Depends(get_current_profile)
 ) -> ArticleInResponse:
-
-
+    
     if article.author.id != current_profile.id:
         raise HTTP_400_BAD_REQUEST_Exception(
                 f"""You can modify only your article."""
@@ -109,9 +105,9 @@ async def delete_by_slug(
     article: Article = Depends(get_article_by_slug_from_path),
     current_profile: Profile = Depends(get_current_profile)
 ) -> None:
-    assert type(article.author.id) == type(current_profile.id)
 
-    if article.author.id != current_profile.id:
+    author: Profile = article.author;
+    if author.id != current_profile.id:
         raise HTTP_400_BAD_REQUEST_Exception(
                 f"You can delete only your article"
             )

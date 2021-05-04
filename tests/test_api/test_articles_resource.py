@@ -2,7 +2,7 @@ import asyncio
 
 from app.models.orm import Article, User
 from app.resources import strings
-from tests.test_api.testing_util import get_article_data, TestCaseWithAuth, ARTICLE_URL, ARTICLE_1, ARTICLE_2, \
+from tests.test_api.testing_util import get_article_data, TestCaseWithAuth, ARTICLE_URL, ARTICLE_1, \
     get_article_dict, USER_2_NAME
 
 RETRIEVE_EXPECTED = {
